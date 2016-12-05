@@ -1,0 +1,10 @@
+{
+  "settings": {
+    "title": "FHEM connector",
+    "intro": "Put the IP address (or hostname), port number, and path of your FHEM server here.<br>Include leading and trailing slash in the path.",
+    "server": "FHEM server",
+    "port": "FHEM port number",
+    "path": "FHEM path"
+  }
+}
+ 

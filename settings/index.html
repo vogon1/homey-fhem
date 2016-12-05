@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+    <head>
+         <script type="text/javascript" src="/manager/webserver/assets/js/jquery.js"></script>
+    </head>
+    <body>
+
+        <h1 data-i18n="settings.title"></h1>
+        <p data-i18n="settings.intro"></p>
+
+        <fieldset>
+            <legend>FHEM server</legend>
+
+            <div class="field row">
+                <label for="fhem_server" data-i18n="settings.server"></label>
+                <input id="fhem_server" type="text" value="" />
+            </div>
+            <div class="field row">
+                <label for="fhem_port" data-i18n="settings.port"></label>
+                <input id="fhem_port" type="text" value="" />
+            </div>
+            <div class="field row">
+                <label for="fhem_path" data-i18n="settings.path"></label>
+                <input id="fhem_path" type="text" value="" />
+            </div>
+
+        </fieldset>
+
+        <button class="right" onclick="save()">Save changes</button>
+
+        <script type="text/javascript">
+            function onHomeyReady(){
+                console.log('onHomeyReady in settings');
+                Homey.get("fhem_server", function (err, value) {
+                    if (value != null) {
+                        $("#fhem_server").val(value);
+                    }
+                });
+                Homey.get("fhem_port", function (err, value) {
+                    if (value != null) {
+                        $("#fhem_port").val(value);
+                    } else {
+                        // default 8083
+                        $("#fhem_port").val('8083');
+                    }
+                });
+                Homey.get("fhem_path", function (err, value) {
+                    if (value != null) {
+                        $("#fhem_path").val(value);
+                    } else {
+                        // default 8083
+                        $("#fhem_path").val('/fhem/');
+                    }
+                });
+                // Ready
+                Homey.ready();
+            }
+
+            function save() {
+                Homey.set('fhem_server', $('#fhem_server').val());
+                Homey.set('fhem_port',   $('#fhem_port').val());
+                Homey.set('fhem_path',   $('#fhem_path').val());
+            }
+        </script>
+
+    </body>
+</html>

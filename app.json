@@ -1,0 +1,140 @@
+{
+    "id": "nl.sietse.homey.fhem",
+    "name": {
+        "en": "FHEM",
+        "nl": "FHEM"
+    },
+    "version": "0.1.0",
+    "compatibility": "0.x || 1.x",
+    "author": {
+        "name": "Sietse Visser",
+        "email": "sietse@sietse.nl"
+    },
+    "images": {
+      "large": "./assets/images/large.png",
+      "small": "./assets/images/small.png"
+    },
+    "category": [ "tools", "appliances" ],
+    "description": {
+        "en": "FHEM interface app for Homey",
+        "nl": "FHEM interface app voor Homey"
+    },
+    "drivers": [
+        {
+            "id": "fhem-thermostat",
+            "name": {
+                "en": "FHEM thermostat",
+                "nl": "FHEM thermostaat"
+            },
+            "images": { 
+                "large": "./drivers/fhem-thermostat/assets/images/fhemthermostat-large.png",
+                "small": "./drivers/fhem-thermostat/assets/images/fhemthermostat-small.png"
+            },
+            "class": "thermostat",
+            "capabilities": [
+                "target_temperature",
+                "measure_temperature"
+            ],
+            "pair": [
+                {
+                    "id": "list_devices",
+                    "template": "list_devices",
+                    "navigation": {
+                        "next": "add_devices"
+                    }
+                },
+                {
+                    "id": "add_devices",
+                    "template": "add_devices" 
+                }
+            ]
+        },
+        {
+            "id": "fhem-light",
+            "name": {
+                "en": "FHEM light",
+                "nl": "FHEM lamp"
+            },
+            "images": { 
+                "large": "./drivers/fhem-light/assets/images/fhemlight-large.png",
+                "small": "./drivers/fhem-light/assets/images/fhemlight-small.png"
+            },
+            "class": "light",
+            "capabilities": [
+                "dim",
+                "onoff"
+            ],
+            "pair": [
+                {
+                    "id": "list_devices",
+                    "template": "list_devices",
+                    "navigation": {
+                        "next": "add_devices"
+                    }
+                },
+                {
+                    "id": "add_devices",
+                    "template": "add_devices" 
+                }
+            ]
+        },
+        {
+            "id": "fhem-socket",
+            "name": {
+                "en": "FHEM socket",
+                "nl": "FHEM stopcontact"
+            },
+            "images": { 
+                "large": "./drivers/fhem-socket/assets/images/fhemsocket-large.png",
+                "small": "./drivers/fhem-socket/assets/images/fhemsocket-small.png"
+            },
+            "class": "socket",
+            "capabilities": [
+                "dim",
+                "onoff"
+            ],
+            "pair": [
+                {
+                    "id": "list_devices",
+                    "template": "list_devices",
+                    "navigation": {
+                        "next": "add_devices"
+                    }
+                },
+                {
+                    "id": "add_devices",
+                    "template": "add_devices" 
+                }
+            ]
+        },
+        {
+            "id": "fhem-windowcoverings",
+            "name": {
+                "en": "FHEM windowcoverings",
+                "nl": "FHEM zonwering"
+            },
+            "images": { 
+                "large": "./drivers/fhem-windowcoverings/assets/images/fhemwindowcoverings-large.png",
+                "small": "./drivers/fhem-windowcoverings/assets/images/fhemwindowcoverings-small.png"
+            },
+            "class": "windowcoverings",
+            "capabilities": [
+                "dim",
+                "onoff"
+            ],
+            "pair": [
+                {
+                    "id": "list_devices",
+                    "template": "list_devices",
+                    "navigation": {
+                        "next": "add_devices"
+                    }
+                },
+                {
+                    "id": "add_devices",
+                    "template": "add_devices" 
+                }
+            ]
+        }
+    ]
+}

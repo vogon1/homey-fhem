@@ -1,0 +1,9 @@
+{
+  "settings": {
+    "title": "FHEM connector",
+    "intro": "Vul het IP adres (of hostnaam), poort nummer, en pad van je FHEM server in.<br>Zet ook begin en eind slash (/) in je pad.",
+    "server": "FHEM server",
+    "port": "FHEM poort nummer",
+    "path": "FHEM pad"
+  }
+}
