@@ -11,6 +11,7 @@ Currently supported device types:
 * Sockets
 * Thermostats
 * Window coverings
+* Sensors
 
 # Attribute mapping
 In FHEM, add an attribute homeyMapping to the devices you want to be able to control in Homey. the format of the attribute is:
