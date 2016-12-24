@@ -16,51 +16,15 @@ module.exports.init = function (devices_data, callback) {
 module.exports.capabilities = {
     measure_temperature: {
         get: function( device_data, callback ){
-            var fhem_dev = device_data.id;
-            if( fhem_dev instanceof Error ) return callback( fhem_dev );
-
-            // Get temperature
-			fhem.FHEMrequest('get', fhem_dev, '', function(err, result, body){
-				if( err ) return callback(err);
-                if (!body || !body.Results || body.Results.length == 0) return callback( fhem_dev );
-
-				var temperature = '0';
-				temperature = fhem.FHEMgetreading('measure_temperature', device_data, body.Results[0].Readings);
-				temperature = fhem.FHEMgetnum(temperature, 'float1');
-				console.log(fhem_dev + ' - Return to callback on measure temperature get: ' + temperature);
-                callback( null,  temperature);
-            })
+            fhem.FHEMget_measure_temperature(device_data, callback);
         }
     },
     target_temperature: {
         get: function( device_data, callback ){
-            var fhem_dev = device_data.id;
-            if( fhem_dev instanceof Error ) return callback( fhem_dev );
-
-            // Get temperature
-			fhem.FHEMrequest('get', fhem_dev, '', function(err, result, body){
-				if( err ) return callback(err);
-                if (!body || !body.Results || body.Results.length == 0) return callback( fhem_dev );
-
-				var temperature = '0';
-				temperature = fhem.FHEMgetreading('target_temperature', device_data, body.Results[0].Readings);
-				temperature = fhem.FHEMgetnum(temperature, 'float1');
-				console.log(fhem_dev + ' - Return to callback on target temperature get: ' + temperature);
-                callback( null,  temperature);
-            })
+            fhem.FHEMget_target_temperature(device_data, callback);
         },
         set: function( device_data, dev_state, callback ) {			
-            var fhem_dev = device_data.id;
-            if( fhem_dev instanceof Error ) return callback( fhem_dev );
-
-            var cap = fhem.FHEMgetcap(device_data, 'target_temperature');
-            var val = fhem.FHEMsliderval(device_data, dev_state);
-
-            // Set temperature
-			fhem.FHEMrequest('set', fhem_dev, cap + '+' + val, function(err, result, body){
-				if( err ) return callback(err);
-                callback( null, val );
-            })
+            fhem.FHEMset_target_temperature(device_data, dev_state, callback);
         }
     },
 };

@@ -25,12 +25,22 @@ light | onoff dim measure_energy meausre_power
 socket | onoff dim measure_energy measure_power
 thermostat | target_temperature measure_temperature measure_humidity
 windowcoverings | onoff dim
+sensor | measure_temperature measure_humidity measure_power measure_luminance meter_power alarm_motion alarm_contact
 
 # Examples
 Examples of a homeyMapping attribute for your FHEM devices:
 * `attr mylight homeyMapping light:dim,onoff`
-* `attr mythermostat homeyMapping measure_temperature=temperature,target_temperature=desired-temperature`
+* `attr mythermostat homeyMapping thermostat:measure_temperature=temperature,target_temperature=desired-temperature`
+* `attr mysensor homeyMapping sensor:alarm_motion:basicSet,measure_temperatur=temperature,measure_luminance=luminance`
+
+# Issues / requests
+If you want to report an issue, or have a request for this app, log an issue at [my Gitub project](https://github.com/vogon1/homey-fhem)
+
 
 # What's new
+
+# v0.2.0 
+Added sensors
+
 # v0.1.0 
 Initial release to the Homey app store

@@ -4,8 +4,8 @@
         "en": "FHEM",
         "nl": "FHEM"
     },
-    "version": "0.1.0",
-    "compatibility": "0.x || 1.x",
+    "version": "0.2.0",
+    "compatibility": "1.x",
     "author": {
         "name": "Sietse Visser",
         "email": "sietse@sietse.nl"
@@ -121,6 +121,40 @@
             "capabilities": [
                 "dim",
                 "onoff"
+            ],
+            "pair": [
+                {
+                    "id": "list_devices",
+                    "template": "list_devices",
+                    "navigation": {
+                        "next": "add_devices"
+                    }
+                },
+                {
+                    "id": "add_devices",
+                    "template": "add_devices" 
+                }
+            ]
+        },
+        {
+            "id": "fhem-sensor",
+            "name": {
+                "en": "FHEM sensor",
+                "nl": "FHEM sensor"
+            },
+            "images": { 
+                "large": "./drivers/fhem-sensor/assets/images/fhemsensor-large.png",
+                "small": "./drivers/fhem-sensor/assets/images/fhemsensor-small.png"
+            },
+            "class": "sensor",
+            "capabilities": [
+                "measure_temperature",
+                "measure_humidity",
+                "measure_power",
+                "measure_luminance",
+                "meter_power",
+                "alarm_motion",
+                "alarm_contact"
             ],
             "pair": [
                 {

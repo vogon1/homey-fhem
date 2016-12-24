@@ -1,7 +1,7 @@
 var fhem = require('./../fhem.js');
 
 module.exports.init = function (devices_data, callback) {
-    Homey.log("FHEM socket start");
+    Homey.log("FHEM sensor start");
     devices_data.forEach(function (device_data) {
        	fhem.FHEMsetcache(device_data.id, device_data, module.exports.realtime, true);
     });
@@ -12,20 +12,14 @@ module.exports.init = function (devices_data, callback) {
 }
 
 module.exports.capabilities = {
-    dim: {
+    measure_temperature: {
         get: function( device_data, callback ){
-            fhem.FHEMget_dim(device_data, callback);
-        },
-        set: function( device_data, dev_state, callback ) {
-            fhem.FHEMset_dim(device_data, dev_state, callback);
+            fhem.FHEMget_measure_temperature(device_data, callback);
         }
     },
-    onoff: {
+    measure_humidity: {
         get: function( device_data, callback ){
-            fhem.FHEMget_onoff(device_data, callback);
-        },
-        set: function( device_data, dev_state, callback ) {			
-            fhem.FHEMset_onoff(device_data, dev_state, callback);
+            fhem.FHEMget_measure_humidity(device_data, callback);
         }
     },
     measure_power: {
@@ -33,11 +27,26 @@ module.exports.capabilities = {
             fhem.FHEMget_measure_power(device_data, callback);
         }
     },
+    measure_luminance: {
+        get: function( device_data, callback ){
+            fhem.FHEMget_measure_luminance(device_data, callback);
+        }
+    },
     meter_power: {
         get: function( device_data, callback ){
             fhem.FHEMget_meter_power(device_data, callback);
         }
-    }
+    },
+    alarm_motion: {
+        get: function( device_data, callback ){
+            fhem.FHEMget_alarm_motion(device_data, callback);
+        }
+    },
+    alarm_contact: {
+        get: function( device_data, callback ){
+            fhem.FHEMget_alarm_contact(device_data, callback);
+        }
+    },
 };
 
 module.exports.pair = function( socket ) {
@@ -55,7 +64,7 @@ module.exports.pair = function( socket ) {
 		fhem.FHEMrequest('get', '', '', function(err, result, body){
 			if( err ) return callback(err);
 
-			var devices = fhem.FHEMgetdevices('socket', body, module.exports.realtime);		
+			var devices = fhem.FHEMgetdevices('sensor', body, module.exports.realtime);		
 			callback( null, devices );
 		});
 	});

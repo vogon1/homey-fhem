@@ -147,7 +147,7 @@ fhem.FHEMgetcap = function(dev, homey_cap) {
 fhem.FHEMgetreading = function(homey_cap, dev, readings) {
     var fhem_cap = fhem.FHEMgetcap(dev, homey_cap);
     var val = '';
-    if (readings[fhem_cap]) {
+    if (readings[fhem_cap] && readings[fhem_cap].Value != 'state') {
         val = readings[fhem_cap].Value;
     }
     return val;
@@ -169,16 +169,272 @@ fhem.FHEMgetnum = function(value, type) {
     return value;
 }
 
+fhem.FHEMgetmotion = function(value) {
+    var motion = false;
+
+    if (value) {
+        if (value == '0') motion      = false;
+        if (value == 'closed') motion = false;
+        if (value == 'open') motion   = true;
+        if (value == '255') motion    = true;
+        if (value == '0xff') motion   = true;
+    }
+    return motion;
+}
+
+fhem.FHEMgetcontact = function(value) {
+    var contact_alarm = false;
+
+    if (value) {
+        if (value == 'open') contact_alarm = true;
+        if (value == 'closed') contact_alarm = false;
+    }
+    return contact_alarm;
+}
+
 fhem.FHEMsliderval = function(dev, val) {
-    var slider = dev.slider.split(",");
-    if (val < slider[0]) {
-        val = slider[0];
-    } else if (val > slider[2]) {
-        val = slider[2];
+    if (dev.slider) {
+        var slider = dev.slider.split(",");
+        if (val < slider[0]) {
+            val = slider[0];
+        } else if (val > slider[2]) {
+            val = slider[2];
+        } else {
+            val = Math.round(val / slider[1]) * slider[1];
+        }
     } else {
-        val = Math.round(val / slider[1]) * slider[1];
+        val = 0;
     }
     return val;
+}
+
+fhem.FHEMget_onoff = function(device_data, callback) {
+    var fhem_dev = device_data.id;
+    if( fhem_dev instanceof Error ) return callback( fhem_dev );
+
+    // Get state
+    fhem.FHEMrequest('get', fhem_dev, '', function(err, result, body){
+        if( err ) return callback(err);
+        if (!body || !body.Results || body.Results.length == 0) return callback( fhem_dev );
+
+        var state = body.Results[0].Readings.state.Value;
+        console.log(fhem_dev + ' - Onoff state: ' + state);
+        if (state == 'off')
+            state = 0;
+        else
+            state = fhem.FHEMgetnum(state, 'int');
+        if (state == 0) state = false; else state = true;
+        console.log(fhem_dev + ' - Return to callback on get onoff: ' + state);
+        callback( null,  state);
+    })
+}
+
+fhem.FHEMset_onoff = function(device_data, dev_state, callback) {
+    var fhem_dev = device_data.id;
+    if( fhem_dev instanceof Error ) return callback( fhem_dev );
+
+    if (dev_state) dev_state = 'on'; else dev_state = 'off';
+
+    // Set state
+    fhem.FHEMrequest('set', fhem_dev, dev_state, function(err, result, body){
+        if( err ) return callback(err);
+        callback( null, dev_state );
+    })
+}
+
+fhem.FHEMget_dim = function(device_data, callback) {
+    var fhem_dev = device_data.id;
+    if( fhem_dev instanceof Error ) return callback( fhem_dev );
+
+    // Get state
+    fhem.FHEMrequest('get', fhem_dev, '', function(err, result, body){
+        if( err ) return callback(err);
+        if (!body || !body.Results || body.Results.length == 0) return callback( fhem_dev );
+
+        var state = body.Results[0].Readings.state.Value;
+        if (state.match(/off/i))
+            state = '0';
+        else if (state.match(/on/i))
+            state = '100';
+        state = fhem.FHEMgetnum(state, 'int') / 100;
+        console.log(fhem_dev + ' - Return to callback on get dim: ' + state);
+        callback( null,  state);
+    })
+}
+
+fhem.FHEMset_dim = function(device_data, dev_state, callback) {
+    var fhem_dev = device_data.id;
+    if( fhem_dev instanceof Error ) return callback( fhem_dev );
+
+    var cap = fhem.FHEMgetcap(device_data, 'dim');
+    var val = fhem.FHEMsliderval(device_data, Math.round(dev_state*100));
+
+    // Set state
+    fhem.FHEMrequest('set', fhem_dev, cap + '+' + val, function(err, result, body){
+        if( err ) return callback(err);
+        callback( null, dev_state );
+    })
+}
+
+fhem.FHEMget_target_temperature = function(device_data, callback) {
+    var fhem_dev = device_data.id;
+    if( fhem_dev instanceof Error ) return callback( fhem_dev );
+
+    // Get temperature
+    fhem.FHEMrequest('get', fhem_dev, '', function(err, result, body){
+        if( err ) return callback(err);
+        if (!body || !body.Results || body.Results.length == 0) return callback( fhem_dev );
+
+        var temperature = '0';
+        temperature = fhem.FHEMgetreading('target_temperature', device_data, body.Results[0].Readings);
+        temperature = fhem.FHEMgetnum(temperature, 'float1');
+        console.log(fhem_dev + ' - Return to callback on target temperature get: ' + temperature);
+        callback( null,  temperature);
+    })
+}
+
+fhem.FHEMset_target_temperature = function(device_data, dev_state, callback) {
+    var fhem_dev = device_data.id;
+    if( fhem_dev instanceof Error ) return callback( fhem_dev );
+
+    var cap = fhem.FHEMgetcap(device_data, 'target_temperature');
+    var val = fhem.FHEMsliderval(device_data, dev_state);
+
+    // Set temperature
+    fhem.FHEMrequest('set', fhem_dev, cap + '+' + val, function(err, result, body){
+        if( err ) return callback(err);
+        callback( null, val );
+    })
+}
+
+fhem.FHEMget_measure_temperature = function(device_data, callback) {
+    var fhem_dev = device_data.id;
+    if( fhem_dev instanceof Error ) return callback( fhem_dev );
+
+    // Get temperature
+    fhem.FHEMrequest('get', fhem_dev, '', function(err, result, body){
+        if( err ) return callback(err);
+        if (!body || !body.Results || body.Results.length == 0) return callback( fhem_dev );
+
+        var temperature = '0';
+        temperature = fhem.FHEMgetreading('measure_temperature', device_data, body.Results[0].Readings);
+        temperature = fhem.FHEMgetnum(temperature, 'float1');
+        console.log(fhem_dev + ' - Return to callback on measure temperature get: ' + temperature);
+        callback( null,  temperature);
+    })
+}
+
+fhem.FHEMget_measure_humidity = function(device_data, callback) {
+    var fhem_dev = device_data.id;
+    if( fhem_dev instanceof Error ) return callback( fhem_dev );
+
+    // Get temperature
+    fhem.FHEMrequest('get', fhem_dev, '', function(err, result, body){
+        if( err ) return callback(err);
+        if (!body || !body.Results || body.Results.length == 0) return callback( fhem_dev );
+
+        var humidity = '0';
+        humidity = fhem.FHEMgetreading('measure_humidity', device_data, body.Results[0].Readings);
+        humidity = fhem.FHEMgetnum(humidity, 'int');
+        console.log(fhem_dev + ' - Return to callback on measure humidity get: ' + humidity);
+        callback( null,  humidity);
+    })
+}
+
+fhem.FHEMget_meter_power = function(device_data, callback) {
+    // get power value
+    var fhem_dev = device_data.id;
+    if( fhem_dev instanceof Error ) return callback( fhem_dev );
+
+    // Get state
+    var cap = fhem.FHEMgetcap(device_data, 'meter_power');
+    fhem.FHEMrequest('get', fhem_dev, cap, function(err, result, body){
+        if( err ) return callback(err);
+        if (!body || !body.Results || body.Results.length == 0) return callback( fhem_dev );
+
+        var energy = 0;
+        energy = fhem.FHEMgetreading('meter_power', device_data, body.Results[0].Readings);
+        energy = fhem.FHEMgetnum(energy, 'float2');
+
+        console.log(fhem_dev + ' - Return to callback on get meter_power: ' + energy);
+        callback( null,  energy);
+    })
+}
+
+fhem.FHEMget_measure_luminance = function(device_data, callback) {
+    var fhem_dev = device_data.id;
+    if( fhem_dev instanceof Error ) return callback( fhem_dev );
+
+    // Get luminance
+    fhem.FHEMrequest('get', fhem_dev, '', function(err, result, body){
+        if( err ) return callback(err);
+        if (!body || !body.Results || body.Results.length == 0) return callback( fhem_dev );
+
+        var luminance = '0';
+        luminance = fhem.FHEMgetreading('measure_luminance', device_data, body.Results[0].Readings);
+        luminance = fhem.FHEMgetnum(luminance, 'int');
+        console.log(fhem_dev + ' - Return to callback on measure luminance get: ' + luminance);
+        callback( null,  luminance);
+    })
+}
+
+fhem.FHEMget_measure_power = function(device_data, callback) {
+    // get power value
+    var fhem_dev = device_data.id;
+    if( fhem_dev instanceof Error ) return callback( fhem_dev );
+
+    // Get state
+    var cap = fhem.FHEMgetcap(device_data, 'measure_power');
+    fhem.FHEMrequest('get', fhem_dev, cap, function(err, result, body){
+        if( err ) return callback(err);
+        if (!body || !body.Results || body.Results.length == 0) return callback( fhem_dev );
+
+        var power = 0;
+        power = fhem.FHEMgetreading('measure_power', device_data, body.Results[0].Readings);
+        power = fhem.FHEMgetnum(power, 'float2');
+
+        console.log(fhem_dev + ' - Return to callback on get measure_power: ' + power);
+        callback( null,  power);
+    })
+}
+
+fhem.FHEMget_alarm_motion = function(device_data, callback) {
+    var fhem_dev = device_data.id;
+    if( fhem_dev instanceof Error ) return callback( fhem_dev );
+
+    // Get state
+    var cap = fhem.FHEMgetcap(device_data, 'alarm_motion');
+    fhem.FHEMrequest('get', fhem_dev, cap, function(err, result, body){
+        if( err ) return callback(err);
+        if (!body || !body.Results || body.Results.length == 0) return callback( fhem_dev );
+
+        var motion = false;
+        motion = fhem.FHEMgetreading('alarm_motion', device_data, body.Results[0].Readings);
+        motion = fhem.FHEMgetmotion(motion);
+
+        console.log(fhem_dev + ' - Return to callback on get alarm_motion: ' + motion);
+        callback( null,  motion);
+    })
+}
+
+fhem.FHEMget_alarm_contact = function(device_data, callback) {
+    var fhem_dev = device_data.id;
+    if( fhem_dev instanceof Error ) return callback( fhem_dev );
+
+    // Get state
+    var cap = fhem.FHEMgetcap(device_data, 'alarm_contact');
+    if (cap == 'alarm_contact') cap = '';
+    fhem.FHEMrequest('get', fhem_dev, cap, function(err, result, body){
+        if( err ) return callback(err);
+        if (!body || !body.Results || body.Results.length == 0) return callback( fhem_dev );
+
+        var contact = false;
+        contact = fhem.FHEMgetreading('alarm_contact', device_data, body.Results[0].Readings);
+        contact = fhem.FHEMgetcontact(contact);
+
+        console.log(fhem_dev + ' - Return to callback on get alarm_contact: ' + contact);
+        callback( null,  contact);
+    })
 }
 
 var request_obj;
@@ -240,23 +496,31 @@ fhem.poll = function () {
    				}
 
                 if (attr == 'state') {
-                    if (val == 'off') {
-                        console.log('RT event: ' + 'onoff' + ' -> ' + 'off');
-                        fn(device_data, 'onoff', false);
-                        return;
-                    }
+                    switch (homey_class) {
+                        case 'light':
+                        case 'socket':
+                        case 'windowcoverings':
+                            if (val == 'off') {
+                                console.log('RT event: ' + 'onoff' + ' -> ' + 'off');
+                                fn(device_data, 'onoff', false);
+                                return;
+                            }
 
-                    if (val == 'on') {
-                        console.log('RT event: ' + 'onoff' + ' -> ' + 'on');
-                        fn(device_data, 'onoff', true);
-                        return;
-                    }
+                            if (val == 'on') {
+                                console.log('RT event: ' + 'onoff' + ' -> ' + 'on');
+                                fn(device_data, 'onoff', true);
+                                return;
+                            }
 
-                    // if we have something like 'state dim 10', promote dim to attr
-                    if (val.match(/^[^ ]+ /)) {
-                        var parts = val.split(' ');
-                        attr = parts.shift();
-                        val = parts.join(' ');
+                            // if we have something like 'state dim 10', promote dim to attr
+                            if (val.match(/^[^ ]+ /)) {
+                                var parts = val.split(' ');
+                                attr = parts.shift();
+                                val = parts.join(' ');
+                            }
+                            break;
+                        default:
+                            break;
                     }
                 }
 
@@ -291,6 +555,16 @@ fhem.poll = function () {
                             val = fhem.FHEMgetnum(val, 'int');
                             console.log('RT event: ' + homey_cap + ' -> ' + val);
                             fn(device_data, homey_cap, val);
+                            return;
+                        case 'alarm_contact':
+                            val = fhem.FHEMgetcontact(val);
+                            console.log('RT event: ' + 'alarm_contact' + ' -> ' + val);
+                            fn(device_data, 'alarm_contact', val);
+                            return;
+                        case 'alarm_motion':
+                            val = fhem.FHEMgetmotion(val);
+                            console.log('RT event: ' + 'alarm_motion' + ' -> ' + val);
+                            fn(device_data, 'alarm_motion', val);
                             return;
                         default:
                             console.log('Unsupported homey_cap ' + homey_cap);
