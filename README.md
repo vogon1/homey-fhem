@@ -16,13 +16,13 @@ Currently supported device types:
 # Attribute mapping
 In FHEM, add an attribute homeyMapping to the devices you want to be able to control in Homey. the format of the attribute is:
 
-homey_class:homey_capability=fhem_value,homey_capability=fhem_value...
+homey_class:homey_capability=fhem_reading,homey_capability=fhem_reading...
 
 Here are the available homey_classes and their homey_capabilities:
 
 Homey class | Homey capabilities
 --- | ---
-light | onoff dim measure_energy meausre_power
+light | onoff dim measure_energy measure_power
 socket | onoff dim measure_energy measure_power
 thermostat | target_temperature measure_temperature measure_humidity
 windowcoverings | onoff dim
@@ -32,13 +32,16 @@ sensor | measure_temperature measure_humidity measure_power measure_luminance me
 Examples of a homeyMapping attribute for your FHEM devices:
 * `attr mylight homeyMapping light:dim,onoff`
 * `attr mythermostat homeyMapping thermostat:measure_temperature=temperature,target_temperature=desired-temperature`
-* `attr mysensor homeyMapping sensor:alarm_motion:basicSet,measure_temperatur=temperature,measure_luminance=luminance`
+* `attr mysensor homeyMapping sensor:alarm_motion=basicSet,measure_temperature=temperature,measure_luminance=luminance`
 
 # Issues / requests
 If you want to report an issue, or have a request for this app, log an issue at [my Gitub project](https://github.com/vogon1/homey-fhem)
 
 
 # What's new
+
+# v0.3.0
+Fix crashes for new installations, and for devices that are not fully configured yet in FHEM.
 
 # v0.2.0 
 Added sensors

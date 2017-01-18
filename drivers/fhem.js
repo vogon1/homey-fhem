@@ -85,46 +85,48 @@ fhem.FHEMrequest = function(cmd, dev, params, callback) {
 fhem.FHEMgetdevices = function(type, list, realtime) {
 	var devices = [ ];
 
-	list.Results.forEach(function(device) {
-		if (device.Attributes.homeyMapping) {
-			console.log('Adding device ' + device.Name);
-			var hclass_caps = device.Attributes.homeyMapping.split(":");
-			var hclass = hclass_caps[0];
-            var caps = [ ];
-            var capslist = hclass_caps[1].split(',');
-            if (capslist.constructor == Array) {
-                capslist.forEach(function(cap) {
-                    var map = cap.split("=");
-                    caps.push(map[0]);
-                });
-            }
-			var dev = {
-				data: {
-					id: device.Name,
-					fhem_name: device.Name,
-					fhem_to_homey_maps: hclass_caps[1],
-                    homey_class: type
-				},
-				name: device.Name,
-				capabilities: caps
-			};
-			// Find slider values
-			if (device.PossibleSets && device.PossibleSets.match(/slider/)) {
-				var setList = device.PossibleSets.split(/ /);
-				var arrayLength = setList.length;
-				for (var i = 0; i < arrayLength; i++) {
-					if (setList[i].match(/:slider/)) {
-						dev.data.slider = setList[i].replace(/.*:slider,/, "");
-						console.log(" -- Slider: " + dev.data.slider);
-					}
-				}
-			}
-            fhem.FHEMsetcache(dev.data.id, dev.data, realtime, false);
-            if (hclass == type) {
-				devices.push(dev);
-			}
-		};
-	});
+    if (list.Results && list.Results.isArray()) {
+    	list.Results.forEach(function(device) {
+    		if (device.Attributes.homeyMapping) {
+    			console.log('Adding device ' + device.Name);
+    			var hclass_caps = device.Attributes.homeyMapping.split(":");
+    			var hclass = hclass_caps[0];
+                var caps = [ ];
+                var capslist = hclass_caps[1].split(',');
+                if (capslist.constructor == Array) {
+                    capslist.forEach(function(cap) {
+                        var map = cap.split("=");
+                        caps.push(map[0]);
+                    });
+                }
+    			var dev = {
+    				data: {
+    					id: device.Name,
+    					fhem_name: device.Name,
+    					fhem_to_homey_maps: hclass_caps[1],
+                        homey_class: type
+    				},
+    				name: device.Name,
+    				capabilities: caps
+    			};
+    			// Find slider values
+    			if (device.PossibleSets && device.PossibleSets.match(/slider/)) {
+    				var setList = device.PossibleSets.split(/ /);
+    				var arrayLength = setList.length;
+    				for (var i = 0; i < arrayLength; i++) {
+    					if (setList[i].match(/:slider/)) {
+    						dev.data.slider = setList[i].replace(/.*:slider,/, "");
+    						console.log(" -- Slider: " + dev.data.slider);
+    					}
+    				}
+    			}
+                fhem.FHEMsetcache(dev.data.id, dev.data, realtime, false);
+                if (hclass == type) {
+    				devices.push(dev);
+    			}
+    		};
+    	});
+    }
 	return devices;
 }
 
@@ -215,7 +217,7 @@ fhem.FHEMget_onoff = function(device_data, callback) {
     // Get state
     fhem.FHEMrequest('get', fhem_dev, '', function(err, result, body){
         if( err ) return callback(err);
-        if (!body || !body.Results || body.Results.length == 0) return callback( fhem_dev );
+        if (!body || !body.Results || body.Results.length == 0 || !body.Results[0].Readings || !body.Results[0].Readings.state) return callback( fhem_dev );
 
         var state = body.Results[0].Readings.state.Value;
         console.log(fhem_dev + ' - Onoff state: ' + state);
@@ -249,7 +251,7 @@ fhem.FHEMget_dim = function(device_data, callback) {
     // Get state
     fhem.FHEMrequest('get', fhem_dev, '', function(err, result, body){
         if( err ) return callback(err);
-        if (!body || !body.Results || body.Results.length == 0) return callback( fhem_dev );
+        if (!body || !body.Results || body.Results.length == 0 || !body.Results[0].Readings || !body.Results[0].Readings.state) return callback( fhem_dev );
 
         var state = body.Results[0].Readings.state.Value;
         if (state.match(/off/i))
