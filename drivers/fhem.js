@@ -85,7 +85,7 @@ fhem.FHEMrequest = function(cmd, dev, params, callback) {
 fhem.FHEMgetdevices = function(type, list, realtime) {
 	var devices = [ ];
 
-    if (list.Results && list.Results.isArray()) {
+    if (list.Results && list.Results.length) {
     	list.Results.forEach(function(device) {
     		if (device.Attributes.homeyMapping) {
     			console.log('Adding device ' + device.Name);
