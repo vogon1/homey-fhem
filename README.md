@@ -21,10 +21,10 @@ homey_class:homey_capability=fhem_reading,homey_capability=fhem_reading...
 Here are the available homey_classes and their homey_capabilities:
 
 Homey class | Homey capabilities
---- | ---
+----------- | ------------------
 light | onoff dim measure_energy measure_power
 socket | onoff dim measure_energy measure_power
-thermostat | target_temperature measure_temperature measure_humidity
+thermostat | target_temperature measure_temperature
 windowcoverings | onoff dim
 sensor | measure_temperature measure_humidity measure_power measure_luminance meter_power alarm_motion alarm_contact
 
@@ -40,7 +40,7 @@ If you want to report an issue, or have a request for this app, log an issue at 
 
 # What's new
 
-# v0.5.0 (2017-12-13)
+# v0.5.1 (2017-12-13)
 Change to SDK v2; add update possibility to change some readings in FHEM via action cards
 
 # v0.3.0

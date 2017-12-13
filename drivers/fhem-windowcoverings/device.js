@@ -12,7 +12,7 @@ class FhemWindowscoveringsDevice extends Homey.Device {
         this.log('name:', this.getName());
         this.log('class:', this.getClass());
 
-        fhem.FHEMsetcache(this.getName(), this.getData(), 'fhem-windowscoverings', true);
+        fhem.FHEMsetcache(this.getData().id, this.getData(), 'fhem-windowscoverings', true);
 
         setTimeout(fhem.poll, 1000);
 
