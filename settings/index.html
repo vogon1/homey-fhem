@@ -2,6 +2,7 @@
 <html>
     <head>
          <script type="text/javascript" src="/manager/webserver/assets/js/jquery.js"></script>
+         <script type="text/javascript" src="/homey.js" data-origin="settings"></script>
     </head>
     <body>
 
@@ -29,7 +30,9 @@
         <button class="right" onclick="save()">Save changes</button>
 
         <script type="text/javascript">
-            function onHomeyReady(){
+            var h;
+            function onHomeyReady(Homey){
+                h = Homey;
                 console.log('onHomeyReady in settings');
                 Homey.get("fhem_server", function (err, value) {
                     if (value != null) {
@@ -57,9 +60,9 @@
             }
 
             function save() {
-                Homey.set('fhem_server', $('#fhem_server').val());
-                Homey.set('fhem_port',   $('#fhem_port').val());
-                Homey.set('fhem_path',   $('#fhem_path').val());
+                h.set('fhem_server', $('#fhem_server').val());
+                h.set('fhem_port',   $('#fhem_port').val());
+                h.set('fhem_path',   $('#fhem_path').val());
             }
         </script>
 

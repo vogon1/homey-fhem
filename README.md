@@ -40,6 +40,9 @@ If you want to report an issue, or have a request for this app, log an issue at 
 
 # What's new
 
+# v0.5.0 (2017-12-13)
+Change to SDK v2; add update possibility to change some readings in FHEM via action cards
+
 # v0.3.0
 Fix crashes for new installations, and for devices that are not fully configured yet in FHEM.
 

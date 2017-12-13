@@ -4,8 +4,9 @@
         "en": "FHEM",
         "nl": "FHEM"
     },
-    "version": "0.3.0",
-    "compatibility": "1.x",
+    "version": "0.5.0",
+    "compatibility": ">= 1.5.x",
+    "sdk": 2,
     "author": {
         "name": "Sietse Visser",
         "email": "sietse@sietse.nl"
@@ -19,36 +20,101 @@
         "en": "FHEM interface app for Homey",
         "nl": "FHEM interface app voor Homey"
     },
-    "drivers": [
-        {
-            "id": "fhem-thermostat",
-            "name": {
-                "en": "FHEM thermostat",
-                "nl": "FHEM thermostaat"
-            },
-            "images": { 
-                "large": "./drivers/fhem-thermostat/assets/images/fhemthermostat-large.png",
-                "small": "./drivers/fhem-thermostat/assets/images/fhemthermostat-small.png"
-            },
-            "class": "thermostat",
-            "capabilities": [
-                "target_temperature",
-                "measure_temperature"
-            ],
-            "pair": [
-                {
-                    "id": "list_devices",
-                    "template": "list_devices",
-                    "navigation": {
-                        "next": "add_devices"
-                    }
+    "flow": {
+        "actions": [
+            {
+                "id": "FHEMlight_set_energy",
+                "title": {
+                    "en": "Set energy",
+                    "nl": "Zet energie"
                 },
-                {
-                    "id": "add_devices",
-                    "template": "add_devices" 
-                }
-            ]
-        },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "filter": "driver_id=fhem-light"
+                    },
+                    {
+                        "name": "energy",
+                        "type": "number"
+                    }
+                ]
+            },
+            {
+                "id": "FHEMlight_set_meter",
+                "title": {
+                    "en": "Set meter",
+                    "nl": "Zet meter"
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "filter": "driver_id=fhem-light"
+                    },
+                    {
+                        "name": "meter",
+                        "type": "number"
+                    }
+                ]
+            },
+            {
+                "id": "FHEMsocket_set_energy",
+                "title": {
+                    "en": "Set energy",
+                    "nl": "Zet energie"
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "filter": "driver_id=fhem-socket"
+                    },
+                    {
+                        "name": "energy",
+                        "type": "number"
+                    }
+                ]
+            },
+            {
+                "id": "FHEMsocket_set_meter",
+                "title": {
+                    "en": "Set meter",
+                    "nl": "Zet meter"
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "filter": "driver_id=fhem-socket"
+                    },
+                    {
+                        "name": "meter",
+                        "type": "number"
+                    }
+                ]
+            },
+            {
+                "id": "FHEMthermostat_set_measure_temperature",
+                "title": {
+                    "en": "Set measured temperature",
+                    "nl": "Zet gemeten temperatuur"
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "filter": "driver_id=fhem-thermostat"
+                    },
+                    {
+                        "name": "temperature",
+                        "type": "number"
+                    }
+                ]
+            }
+        ]
+    },
+    "drivers": [
         {
             "id": "fhem-light",
             "name": {
@@ -92,6 +158,35 @@
             "capabilities": [
                 "dim",
                 "onoff"
+            ],
+            "pair": [
+                {
+                    "id": "list_devices",
+                    "template": "list_devices",
+                    "navigation": {
+                        "next": "add_devices"
+                    }
+                },
+                {
+                    "id": "add_devices",
+                    "template": "add_devices" 
+                }
+            ]
+        },
+        {
+            "id": "fhem-thermostat",
+            "name": {
+                "en": "FHEM thermostat",
+                "nl": "FHEM thermostaat"
+            },
+            "images": { 
+                "large": "./drivers/fhem-thermostat/assets/images/fhemthermostat-large.png",
+                "small": "./drivers/fhem-thermostat/assets/images/fhemthermostat-small.png"
+            },
+            "class": "thermostat",
+            "capabilities": [
+                "target_temperature",
+                "measure_temperature"
             ],
             "pair": [
                 {

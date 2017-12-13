@@ -1,14 +1,14 @@
 "use strict";
 
 var request = require("request");
-
 var dev_cache = [];
+const Homey = require('homey');
 
 var fhem = {
 	polling: false
 };
 
-fhem.FHEMsetcache = function(id, device_data, realtime, poll) {
+fhem.FHEMsetcache = function(id, device_data, drivername, poll) {
 	if (dev_cache[id]) {
 		// Already exists; set poll to true if poll argument is true
         if (poll) dev_cache[id]['poll'] = true;
@@ -18,7 +18,7 @@ fhem.FHEMsetcache = function(id, device_data, realtime, poll) {
     }
 
 	dev_cache[id]['device_data'] = device_data;
-    dev_cache[id]['realtime'] = realtime;
+    dev_cache[id]['drivername'] = drivername;
 
     console.log(device_data);
     var caps = [ ];
@@ -45,9 +45,9 @@ fhem.FHEMdelcache = function(id) {
 }
 
 fhem.FHEMrequest = function(cmd, dev, params, callback) {
-    var fhemIP   = Homey.manager('settings').get( 'fhem_server' );
-    var fhemPort = Homey.manager('settings').get( 'fhem_port' );
-    var fhemPath = Homey.manager('settings').get( 'fhem_path' );
+    var fhemIP   = Homey.ManagerSettings.get( 'fhem_server' );
+    var fhemPort = Homey.ManagerSettings.get( 'fhem_port' );
+    var fhemPath = Homey.ManagerSettings.get( 'fhem_path' );
 
 	var save_resp = false;
 	var url = 'http://' + fhemIP + ':' + fhemPort + fhemPath + '?cmd=';
@@ -82,7 +82,7 @@ fhem.FHEMrequest = function(cmd, dev, params, callback) {
 	});
 }
 
-fhem.FHEMgetdevices = function(type, list, realtime) {
+fhem.FHEMgetdevices = function(type, list, drivername) {
 	var devices = [ ];
 
     if (list.Results && list.Results.length) {
@@ -120,7 +120,7 @@ fhem.FHEMgetdevices = function(type, list, realtime) {
     					}
     				}
     			}
-                fhem.FHEMsetcache(dev.data.id, dev.data, realtime, false);
+                fhem.FHEMsetcache(dev.data.id, dev.data, drivername, false);
                 if (hclass == type) {
     				devices.push(dev);
     			}
@@ -326,6 +326,19 @@ fhem.FHEMget_measure_temperature = function(device_data, callback) {
     })
 }
 
+fhem.FHEMset_measure_temperature = function(device_data, measured_temperature, callback) {
+    var fhem_dev = device_data.id;
+    if( fhem_dev instanceof Error ) return callback( fhem_dev );
+
+    var temperature = "temperature " + measured_temperature + " C";
+
+    // Set state
+    fhem.FHEMrequest('set', fhem_dev, temperature, function(err, result, body){
+        if( err ) return callback(err);
+        callback( null, true );
+    })
+}
+
 fhem.FHEMget_measure_humidity = function(device_data, callback) {
     var fhem_dev = device_data.id;
     if( fhem_dev instanceof Error ) return callback( fhem_dev );
@@ -340,6 +353,19 @@ fhem.FHEMget_measure_humidity = function(device_data, callback) {
         humidity = fhem.FHEMgetnum(humidity, 'int');
         console.log(fhem_dev + ' - Return to callback on measure humidity get: ' + humidity);
         callback( null,  humidity);
+    })
+}
+
+fhem.FHEMset_measure_humidity = function(device_data, measured_humidity, callback) {
+    var fhem_dev = device_data.id;
+    if( fhem_dev instanceof Error ) return callback( fhem_dev );
+
+    var humidity = "humidity " + measured_humidity + " %";
+
+    // Set state
+    fhem.FHEMrequest('set', fhem_dev, humidity, function(err, result, body){
+        if( err ) return callback(err);
+        callback( null, true );
     })
 }
 
@@ -360,6 +386,19 @@ fhem.FHEMget_meter_power = function(device_data, callback) {
 
         console.log(fhem_dev + ' - Return to callback on get meter_power: ' + energy);
         callback( null,  energy);
+    })
+}
+
+fhem.FHEMset_meter_power = function(device_data, meter, callback) {
+    var fhem_dev = device_data.id;
+    if( fhem_dev instanceof Error ) return callback( fhem_dev );
+
+    var energy = "energy " + meter + " kWh";
+
+    // Set state
+    fhem.FHEMrequest('set', fhem_dev, energy, function(err, result, body){
+        if( err ) return callback(err);
+        callback( null, true );
     })
 }
 
@@ -397,6 +436,19 @@ fhem.FHEMget_measure_power = function(device_data, callback) {
 
         console.log(fhem_dev + ' - Return to callback on get measure_power: ' + power);
         callback( null,  power);
+    })
+}
+
+fhem.FHEMset_measure_power = function(device_data, energy, callback) {
+    var fhem_dev = device_data.id;
+    if( fhem_dev instanceof Error ) return callback( fhem_dev );
+
+    var power = "power " + energy + " W";
+
+    // Set state
+    fhem.FHEMrequest('set', fhem_dev, power, function(err, result, body){
+        if( err ) return callback(err);
+        callback( null, true );
     })
 }
 
@@ -449,9 +501,9 @@ fhem.restart_poll = function () {
 }
 
 fhem.poll = function () {
-    var fhemIP   = Homey.manager('settings').get( 'fhem_server' );
-    var fhemPort = Homey.manager('settings').get( 'fhem_port' );
-    var fhemPath = Homey.manager('settings').get( 'fhem_path' );
+    var fhemIP   = Homey.ManagerSettings.get( 'fhem_server' );
+    var fhemPort = Homey.ManagerSettings.get( 'fhem_port' );
+    var fhemPath = Homey.ManagerSettings.get( 'fhem_path' );
 
     if (!fhemIP) return;
 
@@ -485,7 +537,7 @@ fhem.poll = function () {
        			if (!attr || dev_attr[2] == 'ts') return; // is timestamp line
 
        			var val = elements[1];
-   				var fn = dev_cache[dev]['realtime'];
+   				var Hdev = Homey.ManagerDrivers.getDriver(dev_cache[dev]['drivername']).getDevice(dev_cache[dev]['device_data']);
    				var device_data = dev_cache[dev]['device_data'];
                 var fhem_to_homey = dev_cache[dev]['fhem_to_homey_maps'];
                 var homey_class = 'light';
@@ -504,13 +556,13 @@ fhem.poll = function () {
                         case 'windowcoverings':
                             if (val == 'off') {
                                 console.log('RT event: ' + 'onoff' + ' -> ' + 'off');
-                                fn(device_data, 'onoff', false);
+                                Hdev.setCapabilityValue('onoff', false);
                                 return;
                             }
 
                             if (val == 'on') {
                                 console.log('RT event: ' + 'onoff' + ' -> ' + 'on');
-                                fn(device_data, 'onoff', true);
+                                Hdev.setCapabilityValue('onoff', true);
                                 return;
                             }
 
@@ -532,41 +584,41 @@ fhem.poll = function () {
                         case 'dim':
                             val = fhem.FHEMgetnum(val, 'int') / 100;
                             console.log('RT event: ' + homey_cap + ' -> ' + val);
-                            fn(device_data, homey_cap, val);
+                            Hdev.setCapabilityValue(homey_cap, val);
                             if (val > 0 && (homey_class == 'light' || homey_class == 'windowcoverings')) {
                                 // Switch the light/windowcovering on
                                 console.log('RT event: ' + 'onoff' + ' -> ' + 'on');
-                                fn(device_data, 'onoff', true);
+                                Hdev.setCapabilityValue('onoff', true);
                             }
                             return;
                         case 'target_temperature':
                         case 'measure_temperature':
                             val = fhem.FHEMgetnum(val, 'float1');
                             console.log('RT event: ' + homey_cap + ' -> ' + val);
-                            fn(device_data, homey_cap, val);
+                            Hdev.setCapabilityValue(homey_cap, val);
                             return;
                         case 'measure_power':
                         case 'meter_power':
                             val = fhem.FHEMgetnum(val, 'float2');
                             console.log('RT event: ' + homey_cap + ' -> ' + val);
-                            fn(device_data, homey_cap, val);
+                            Hdev.setCapabilityValue(homey_cap, val);
                             return;
                         case 'measure_battery':
                         case 'measure_humidity':
                         case 'measure_luminance':
                             val = fhem.FHEMgetnum(val, 'int');
                             console.log('RT event: ' + homey_cap + ' -> ' + val);
-                            fn(device_data, homey_cap, val);
+                            Hdev.setCapabilityValue(homey_cap, val);
                             return;
                         case 'alarm_contact':
                             val = fhem.FHEMgetcontact(val);
                             console.log('RT event: ' + 'alarm_contact' + ' -> ' + val);
-                            fn(device_data, 'alarm_contact', val);
+                            Hdev.setCapabilityValue('alarm_contact', val);
                             return;
                         case 'alarm_motion':
                             val = fhem.FHEMgetmotion(val);
                             console.log('RT event: ' + 'alarm_motion' + ' -> ' + val);
-                            fn(device_data, 'alarm_motion', val);
+                            Hdev.setCapabilityValue('alarm_motion', val);
                             return;
                         default:
                             console.log('Unsupported homey_cap ' + homey_cap);
