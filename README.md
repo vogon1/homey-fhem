@@ -40,6 +40,9 @@ If you want to report an issue, or have a request for this app, log an issue at 
 
 # What's new
 
+# v0.6.0 (2019-05-25)
+Add support for csrf token as required by FHEM 5.8 and later.
+
 # v0.5.1 (2017-12-13)
 Change to SDK v2; add update possibility to change some readings in FHEM via action cards
 

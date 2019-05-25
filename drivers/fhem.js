@@ -1,12 +1,49 @@
 "use strict";
 
+var rp = require("request-promise-native");
 var request = require("request");
+
 var dev_cache = [];
 const Homey = require('homey');
 
 var fhem = {
-	polling: false
+	polling: false,
+    csrf: null
 };
+
+fhem.FHEMwebrequest = async function (options) {
+    try {
+        var response = await rp(options);
+        return response;
+    } catch (error) {
+        console.log("Error: ", error);
+        return null;
+    }
+}
+
+fhem.FHEMgetcsrf = async function() {
+    var fhemIP   = Homey.ManagerSettings.get( 'fhem_server' );
+    var fhemPort = Homey.ManagerSettings.get( 'fhem_port' );
+    var fhemPath = Homey.ManagerSettings.get( 'fhem_path' );
+
+    var url = 'http://' + fhemIP + ':' + fhemPort + fhemPath + '?XHR=1';
+
+    console.log("Find csrf token with url " + url);
+
+    var response = await fhem.FHEMwebrequest({
+        method: 'GET',
+        url: url,
+        json: true,
+        resolveWithFullResponse: true,
+        headers: {
+        }
+    });
+    if (response != null) {
+        fhem.csrf = response.headers['x-fhem-csrftoken'];
+        console.log("csrf token found: " + fhem.csrf);
+    }
+    if (fhem.csrf == null) fhem.csrf = "";
+}
 
 fhem.FHEMsetcache = function(id, device_data, drivername, poll) {
 	if (dev_cache[id]) {
@@ -44,12 +81,14 @@ fhem.FHEMdelcache = function(id) {
     delete dev_cache[id];
 }
 
-fhem.FHEMrequest = function(cmd, dev, params, callback) {
+fhem.FHEMrequest = async function(cmd, dev, params, callback) {
     var fhemIP   = Homey.ManagerSettings.get( 'fhem_server' );
     var fhemPort = Homey.ManagerSettings.get( 'fhem_port' );
     var fhemPath = Homey.ManagerSettings.get( 'fhem_path' );
 
-	var save_resp = false;
+    if (fhem.csrf == null) await fhem.FHEMgetcsrf();
+
+    	var save_resp = false;
 	var url = 'http://' + fhemIP + ':' + fhemPort + fhemPath + '?cmd=';
 
 	if (cmd == 'get') {
@@ -68,7 +107,7 @@ fhem.FHEMrequest = function(cmd, dev, params, callback) {
 		url = url + '+' + params;
 	}
 
-	url = url + '&XHR=1';
+	url = url + '&XHR=1' + '&fwcsrf=' + fhem.csrf;
 	console.log('Execute url ' + url);
 
 	request({
@@ -78,6 +117,9 @@ fhem.FHEMrequest = function(cmd, dev, params, callback) {
 		headers: {
 		}
 	}, function(err, result, body) {
+	    if (!result || result.statusCode == 400) {
+	        fhem.csrf = null;
+        }
 		callback(err, result, body);
 	});
 }
@@ -85,7 +127,7 @@ fhem.FHEMrequest = function(cmd, dev, params, callback) {
 fhem.FHEMgetdevices = function(type, list, drivername) {
 	var devices = [ ];
 
-    if (list.Results && list.Results.length) {
+    if (list && list.Results && list.Results.length) {
     	list.Results.forEach(function(device) {
     		if (device.Attributes.homeyMapping) {
     			console.log('Adding device ' + device.Name);
@@ -500,7 +542,7 @@ fhem.restart_poll = function () {
         fhem.poll();
 }
 
-fhem.poll = function () {
+fhem.poll = async function () {
     var fhemIP   = Homey.ManagerSettings.get( 'fhem_server' );
     var fhemPort = Homey.ManagerSettings.get( 'fhem_port' );
     var fhemPath = Homey.ManagerSettings.get( 'fhem_path' );
@@ -508,9 +550,11 @@ fhem.poll = function () {
     if (!fhemIP) return;
 
 	if (fhem.polling) return;
-	fhem.polling = true;	
+	fhem.polling = true;
 
-	var url = 'http://' + fhemIP + ':' + fhemPort + fhemPath + '?XHR=1&inform=type=status;filter=';
+    if (fhem.csrf == null) await fhem.FHEMgetcsrf();
+
+    var url = 'http://' + fhemIP + ':' + fhemPort + fhemPath + '?XHR=1&fwcsrf=' + fhem.csrf + '&inform=type=status;filter=';
 	var start = true;
 	for (var dev in dev_cache) {
         if (dev_cache[dev].poll) {
@@ -632,12 +676,14 @@ fhem.poll = function () {
         .on('end', function() {
        		console.log("End poll, retry in 5 seconds");
        		fhem.polling = false;
+       		fhem.csrf = null;
 		    setTimeout(function() { fhem.poll(); }, 5000);
 
         })
         .on('error', function(err) {
        		console.log("Error poll (retry in 30 seconds): " + err);
        		fhem.polling = false;
+       		fhem.csrf = null;
 		    setTimeout(function() { fhem.poll(); }, 30000);
         });
 }
