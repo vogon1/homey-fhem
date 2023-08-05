@@ -1,5 +1,7 @@
 # FHEM interface
 
+## --> As I don't use fhem anymore, I no longer maintain this software
+
 Use your FHEM devices in Homey.
 
 Homey supports lots of devices out of the box, but for those that are available in FHEM only, you can use this app to use them in Homey.
